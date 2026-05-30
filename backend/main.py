@@ -21,7 +21,7 @@ class TransactionRecord(Base):
     
     transaction_id = Column(String, primary_key=True, index=True)
     recipient_name = Column(String, nullable=False)
-    gross_amount_inr = Column(Column(Float, nullable=False))
+    gross_amount_inr = Column(Float, nullable=False) # <--- Fixed the double Column typo here!
     fee_deducted_inr = Column(Float, nullable=False)
     net_amount_usd = Column(Float, nullable=False)
     exchange_rate = Column(Float, nullable=False)
@@ -71,7 +71,6 @@ def fetch_live_rate_inr() -> float:
         url = "https://open.er-api.com/v6/latest/USD"
         with urllib.request.urlopen(url, timeout=5) as response:
             data = json.loads(response.read().decode())
-            # Fetching the USD to INR rate dynamically
             return float(data["rates"]["INR"])
     except Exception:
         # Fallback rate if external market API is temporarily timing out
