@@ -11,8 +11,10 @@ from pydantic import BaseModel
 # ==========================================
 # 1. DATABASE SETUP
 # ==========================================
-SQLALCHEMY_DATABASE_URL = "sqlite:///./instaremit_ledger.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+# Swapped to cloud-native PostgreSQL and adjusted the protocol dialect for SQLAlchemy compatibility
+SQLALCHEMY_DATABASE_URL = "postgresql://avnadmin:postgres@pg-112faf3f-tufts-6cbe.l.aivencloud.com:17592/defaultdb?sslmode=require"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -21,13 +23,14 @@ class TransactionRecord(Base):
     
     transaction_id = Column(String, primary_key=True, index=True)
     recipient_name = Column(String, nullable=False)
-    gross_amount_inr = Column(Float, nullable=False) # <--- Fixed the double Column typo here!
+    gross_amount_inr = Column(Float, nullable=False)
     fee_deducted_inr = Column(Float, nullable=False)
     net_amount_usd = Column(Float, nullable=False)
     exchange_rate = Column(Float, nullable=False)
     status = Column(String, default="Processing")
     created_at = Column(DateTime, default=datetime.utcnow)
 
+# Automatically spins up tables in your Aiven cluster on startup
 Base.metadata.create_all(bind=engine)
 
 def get_db():
@@ -62,7 +65,7 @@ def health_check():
     return {
         "system_status": "Active",
         "message": "InstaRemit API Engine is running smoothly.",
-        "database": "SQLite Connected"
+        "database": "Aiven PostgreSQL Connected"
     }
 
 # Dynamic Live Rate Helper
@@ -73,7 +76,6 @@ def fetch_live_rate_inr() -> float:
             data = json.loads(response.read().decode())
             return float(data["rates"]["INR"])
     except Exception:
-        # Fallback rate if external market API is temporarily timing out
         return 83.50
 
 # Optimized Ingestion Pipeline
@@ -103,7 +105,7 @@ def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db)):
         status="Processing"
     )
 
-    # 5. Commit directly to the database layer
+    # 5. Commit directly to the cloud database layer
     db.add(new_record)
     db.commit()
     db.refresh(new_record)
