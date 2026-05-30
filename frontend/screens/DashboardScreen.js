@@ -20,7 +20,7 @@ export default function DashboardScreen({ navigation }) {
   useEffect(() => {
     const fetchLiveRate = async () => {
       try {
-        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        const response = await fetch('https://instaremit.onrender.com/transactions/');
         const data = await response.json();
         if (data && data.rates && data.rates.INR) {
           setExchangeRate(data.rates.INR); // Overwrites 83.50 with the real-time market rate

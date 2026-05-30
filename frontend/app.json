@@ -4,7 +4,7 @@
     "slug": "insta-remit-mobile",
     "version": "1.0.0",
     "experiments": {
-      "baseUrl": "/insta-remit-mobile"
+      "baseUrl": "/InstaRemit/"
     },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
