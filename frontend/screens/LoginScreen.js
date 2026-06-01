@@ -24,12 +24,11 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.desktopLeftPanel}>
                 <View style={styles.brandContainer}>
                   <Image source={require('../assets/logo.png')} style={{ width: 180, height: 60, resizeMode: 'contain', marginBottom: 16 }} />
-                  <Text style={styles.desktopTagline}>InstaRemi</Text>
+                  <Text style={styles.desktopTagline}>       InstaRemit</Text>
                   <Text style={styles.desktopDescription}>
-                    Inflow streaming ledger designed for lightning-fast cross-border clearings and real-time exchange rate matrices.
+                  Inflow streaming ledger designed for lightning-fast cross-border clearings and real-time exchange rate matrices.
                   </Text>
                 </View>
-                <Text style={styles.desktopFooterText}>Secured with 256-bit bank-grade infrastructure.</Text>
               </View>
             )}
 
@@ -40,8 +39,8 @@ export default function LoginScreen({ navigation }) {
                 {/* Mobile-only logo header */}
                 {!isDesktop && <Image source={require('../assets/logo1.png')} style={{ width: 150, height: 50, resizeMode: 'contain', alignSelf: 'center', marginBottom: 32 }} />}
 
-                <Text style={styles.mainTitle}>Welcome back</Text>
-                <Text style={styles.subTitle}>Access your secure financial data environment</Text>
+                <Text style={styles.mainTitle}>Welcome Back</Text>
+                <Text style={styles.subTitle}>Hello there, sign in to continue</Text>
 
                 <Text style={styles.inputLabel}>Email Address/Phone Number</Text>
                 <TextInput 
@@ -74,7 +73,8 @@ export default function LoginScreen({ navigation }) {
 
                 <View style={styles.signupPromptRow}>
                   <Text style={styles.promptText}>Don't have an account? </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                  {/* THE FIX: Correctly maps to 'SignupWizard' instead of 'Register' */}
+                  <TouchableOpacity onPress={() => navigation.navigate('SignupWizard')}>
                     <Text style={styles.promptActionText}>Create account</Text>
                   </TouchableOpacity>
                 </View>
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   desktopLeftPanel: { flex: 1.2, backgroundColor: '#001E62', padding: 60, justifyContent: 'space-between' },
   brandContainer: { marginTop: 'auto', marginBottom: 'auto', maxWidth: 460 },
   desktopLogo: { color: '#FFFFFF', fontSize: 32, fontWeight: '700', marginBottom: 16 },
-  desktopTagline: { color: '#63B3ED', fontSize: 20, fontWeight: '600', marginBottom: 12 },
+  desktopTagline: { color: '#f4f6f7', fontSize: 20, fontWeight: '600', marginBottom: 12 },
   desktopDescription: { color: '#A0AEC0', fontSize: 15, lineHeight: 24 },
   desktopFooterText: { color: '#4A5568', fontSize: 12 },
 

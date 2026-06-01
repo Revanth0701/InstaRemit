@@ -6,7 +6,6 @@ export default function RegistrationWizard({ navigation }) {
   const { width: screenWidth } = useWindowDimensions();
   const isDesktop = screenWidth >= 768;
   
-  // States matching your design steps
   const [emailPhone, setEmailPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [street, setStreet] = useState('');
@@ -17,16 +16,15 @@ export default function RegistrationWizard({ navigation }) {
   const [nationality, setNationality] = useState('');
   const [country, setCountry] = useState('');
   
-  // NEW: Dynamic KYC Tracking States
-  const [kycType, setKycType] = useState('PAN Card'); // Defaults to PAN, but changes when tapped
-  const [kycNumber, setKycNumber] = useState('');     // Stores whatever document number they type
+  const [kycType, setKycType] = useState('PAN Card'); 
+  const [kycNumber, setKycNumber] = useState('');     
 
-  // Navigation handlers
   function nextStep() {
-    if (currentStep < 7) {
+    // We now have 8 steps! Step 8 routes back to Login.
+    if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     } else {
-      navigation.navigate('Dashboard');
+      navigation.navigate('Login'); // Redirects to Welcome Back / Login page
     }
   }
 
@@ -38,65 +36,61 @@ export default function RegistrationWizard({ navigation }) {
     }
   }
 
-  // Progress Bar Width
   function getProgressWidth() {
-    return (currentStep / 7) * 100 + '%';
+    return (currentStep / 8) * 100 + '%';
   }
 
-  // Header Title mapping
   function getHeaderTitle() {
-    if (currentStep <= 2) {
-      return "Signing up with email/phone";
-    }
     if (currentStep <= 5) {
       return "Signing up with email/phone";
     }
-    return "KYC Registration";
+    if (currentStep <= 7) {
+      return "KYC Registration";
+    }
+    return "Verification Complete";
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         
         <View style={[styles.layoutWrapper, isDesktop && styles.desktopRow]}>
           
-          {/* LEFT BRANDING COLUMN (Only visible on computers) */}
           {isDesktop && (
             <View style={styles.desktopLeftPanel}>
               <View style={styles.brandContainer}>
                 <Image source={require('../assets/logo.png')} style={styles.desktopLogoImage} />
-                <Text style={styles.desktopTagline}>The Next-Gen Outbound Corridor Pipeline.</Text>
+                <Text style={styles.desktopTagline}>       InstaRemit</Text>
                 <Text style={styles.desktopDescription}>
                   Inflow streaming ledger designed for lightning-fast cross-border clearings and real-time exchange rate matrices.
                 </Text>
               </View>
-              <Text style={styles.desktopFooterText}>Secured with 256-bit bank-grade infrastructure.</Text>
             </View>
           )}
 
-          {/* RIGHT FORM COLUMN (Responsive for phone and computer) */}
           <View style={[styles.formColumn, isDesktop && styles.desktopRightPanel]}>
             <View style={[styles.formCard, isDesktop && styles.desktopFormCardStyle]}>
 
-              {/* YOUR EXACT MOBILE WIZARD STARTS HERE */}
-              {/* Header Navigation Bar */}
               <View style={styles.navBar}>
-                <TouchableOpacity onPress={prevStep} style={styles.backButton}>
-                  <Text style={styles.backArrow}>←</Text>
-                </TouchableOpacity>
+                {/* Hide back button on the final success screen */}
+                {currentStep < 8 ? (
+                  <TouchableOpacity onPress={prevStep} style={styles.backButton}>
+                    <Text style={styles.backArrow}>←</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.placeholderSide} />
+                )}
                 <Text style={styles.navTitle}>{getHeaderTitle()}</Text>
                 <View style={styles.placeholderSide} />
               </View>
 
-              {/* Accent Progress Tracker Bar */}
               <View style={styles.progressTrackBar}>
                 <View style={[styles.progressActiveFill, { width: getProgressWidth() }]} />
               </View>
 
-              <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={true}>
                 <View style={styles.formContent}>
 
-                  {/* SCREEN 1: ADD YOUR EMAIL/PHONE */}
                   {currentStep === 1 && (
                     <View>
                       <Text style={styles.mainTitle}>Add your email/phone</Text>
@@ -113,13 +107,11 @@ export default function RegistrationWizard({ navigation }) {
                     </View>
                   )}
 
-                  {/* SCREEN 2: NATIVE OTP VERIFICATION GRID */}
                   {currentStep === 2 && (
                     <View>
                       <Text style={styles.mainTitle}>OTP Verification</Text>
                       <Text style={styles.subLabelText}>Enter the 6-digit verification code sent to your device</Text>
                       
-                      {/* Fixed explicitly to bypass function compilation loop errors */}
                       <View style={styles.otpGridWrapper}>
                         <View style={[styles.otpDisplayCell, otp.length === 0 && styles.otpDisplayCellActive]}><Text style={styles.otpCellText}>{otp[0] || ''}</Text></View>
                         <View style={[styles.otpDisplayCell, otp.length === 1 && styles.otpDisplayCellActive]}><Text style={styles.otpCellText}>{otp[1] || ''}</Text></View>
@@ -129,7 +121,6 @@ export default function RegistrationWizard({ navigation }) {
                         <View style={[styles.otpDisplayCell, otp.length === 5 && styles.otpDisplayCellActive]}><Text style={styles.otpCellText}>{otp[5] || ''}</Text></View>
                       </View>
 
-                      {/* Hidden layout element handling user touch key captures */}
                       <TextInput 
                         style={styles.hiddenInputOverlay}
                         keyboardType="number-pad"
@@ -141,31 +132,26 @@ export default function RegistrationWizard({ navigation }) {
                     </View>
                   )}
 
-                  {/* SCREEN 3: HOME ADDRESS */}
                   {currentStep === 3 && (
                     <View>
                       <Text style={styles.mainTitle}>Home address</Text>
                       <Text style={styles.subLabelText}>Please provide your primary residential billing location</Text>
-                      
                       <TextInput style={styles.formInputBox} placeholder="Street Address" placeholderTextColor="#A0AEC0" value={street} onChangeText={setStreet} />
                       <TextInput style={styles.formInputBox} placeholder="City" placeholderTextColor="#A0AEC0" value={city} onChangeText={setCity} />
                       <TextInput style={styles.formInputBox} placeholder="Postal Code" placeholderTextColor="#A0AEC0" value={postalCode} onChangeText={setPostalCode} keyboardType="number-pad" />
                     </View>
                   )}
 
-                  {/* SCREEN 4: ADD YOUR PERSONAL INFO */}
                   {currentStep === 4 && (
                     <View>
                       <Text style={styles.mainTitle}>Add your personal info</Text>
                       <Text style={styles.subLabelText}>Ensure this matches your legal identity documents exactly</Text>
-                      
                       <TextInput style={styles.formInputBox} placeholder="Full Legal Name" placeholderTextColor="#A0AEC0" value={fullName} onChangeText={setFullName} />
                       <TextInput style={styles.formInputBox} placeholder="Date of Birth (DD/MM/YYYY)" placeholderTextColor="#A0AEC0" value={dob} onChangeText={setDob} />
                       <TextInput style={styles.formInputBox} placeholder="Nationality" placeholderTextColor="#A0AEC0" value={nationality} onChangeText={setNationality} />
                     </View>
                   )}
 
-                  {/* SCREEN 5: COUNTRY OF RESIDENCE */}
                   {currentStep === 5 && (
                     <View>
                       <Text style={styles.mainTitle}>Country of residence</Text>
@@ -174,32 +160,27 @@ export default function RegistrationWizard({ navigation }) {
                     </View>
                   )}
 
-                  {/* SCREEN 6: DYNAMIC KYC DOCUMENT LIST SELECTION */}
                   {currentStep === 6 && (
                     <View style={styles.alignItemsCenter}>
                       <Text style={styles.illustrationPlaceholder}>🧑‍💻</Text> 
                       <Text style={styles.mainTitleCenter}>Select your identity document to proceed</Text>
                       
                       <View style={styles.kycOptionsWrapper}>
-                        {/* PAN Card Select */}
                         <TouchableOpacity style={[styles.documentItemRow, kycType === 'PAN Card' && styles.documentItemRowActive]} onPress={() => setKycType('PAN Card')} activeOpacity={0.8}>
                           <Text style={styles.docItemText}>💳 PAN Card</Text>
                           <Text style={styles.docStatusDot}>{kycType === 'PAN Card' ? '🟢' : '⚪'}</Text>
                         </TouchableOpacity>
 
-                        {/* Aadhar Card Select */}
                         <TouchableOpacity style={[styles.documentItemRow, kycType === 'Aadhar Card' && styles.documentItemRowActive]} onPress={() => setKycType('Aadhar Card')} activeOpacity={0.8}>
                           <Text style={styles.docItemText}>🏛️ Aadhar Card</Text>
                           <Text style={styles.docStatusDot}>{kycType === 'Aadhar Card' ? '🟢' : '⚪'}</Text>
                         </TouchableOpacity>
 
-                        {/* Passport Select */}
                         <TouchableOpacity style={[styles.documentItemRow, kycType === 'Passport' && styles.documentItemRowActive]} onPress={() => setKycType('Passport')} activeOpacity={0.8}>
                           <Text style={styles.docItemText}>🛂 Passport</Text>
                           <Text style={styles.docStatusDot}>{kycType === 'Passport' ? '🟢' : '⚪'}</Text>
                         </TouchableOpacity>
 
-                        {/* Visa Select */}
                         <TouchableOpacity style={[styles.documentItemRow, kycType === 'Visa' && styles.documentItemRowActive]} onPress={() => setKycType('Visa')} activeOpacity={0.8}>
                           <Text style={styles.docItemText}>📄 Visa</Text>
                           <Text style={styles.docStatusDot}>{kycType === 'Visa' ? '🟢' : '⚪'}</Text>
@@ -208,7 +189,6 @@ export default function RegistrationWizard({ navigation }) {
                     </View>
                   )}
 
-                  {/* SCREEN 7: SMART DATA INPUT MATCHING THE USER'S CHOICE */}
                   {currentStep === 7 && (
                     <View>
                       <Text style={styles.mainTitle}>{kycType}</Text>
@@ -236,23 +216,36 @@ export default function RegistrationWizard({ navigation }) {
                     </View>
                   )}
 
+                  {/* NEW STEP 8: SUCCESS SCREEN */}
+                  {currentStep === 8 && (
+                    <View style={{alignItems: 'center', paddingVertical: 40}}>
+                      <Text style={{fontSize: 70, marginBottom: 24}}>✅</Text>
+                      <Text style={{fontSize: 24, fontWeight: '700', color: '#1A202C', marginBottom: 12}}>Verification Successful!</Text>
+                      <Text style={{fontSize: 15, color: '#718096', textAlign: 'center', lineHeight: 22}}>
+                        Your identity has been verified securely. Your account is now active and ready for transfers.
+                      </Text>
+                    </View>
+                  )}
+
                 </View>
 
-                {/* Persistent Action Buttons */}
+                {/* Persistent Action Buttons with updated text logic */}
                 <View style={styles.footerContainer}>
                   <TouchableOpacity style={styles.primaryActionButton} activeOpacity={0.9} onPress={nextStep}>
                     <Text style={styles.primaryActionButtonText}>
-                      {currentStep === 6 ? "Link KYC Document" : currentStep === 7 ? "Submit & Verify" : "Continue"}
+                      {
+                        currentStep === 6 ? "Link KYC Document" : 
+                        currentStep === 7 ? "Submit & Verify" : 
+                        currentStep === 8 ? "Continue to Login" : 
+                        "Continue"
+                      }
                     </Text>
                   </TouchableOpacity>
                 </View>
 
               </ScrollView>
-              {/* YOUR EXACT MOBILE WIZARD ENDS HERE */}
-
             </View>
           </View>
-
         </View>
 
       </KeyboardAvoidingView>
@@ -261,27 +254,22 @@ export default function RegistrationWizard({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // Shared Mobile Styles
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  keyboardView: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#FFFFFF', height: Platform.OS === 'web' ? '100vh' : '100%' },
   layoutWrapper: { flex: 1, justifyContent: 'center' },
   desktopRow: { flexDirection: 'row' },
   
-  // Desktop Sidebar Branding
   desktopLeftPanel: { flex: 1.2, backgroundColor: '#001E62', padding: 60, justifyContent: 'space-between' },
   brandContainer: { marginTop: 'auto', marginBottom: 'auto', maxWidth: 460 },
   desktopLogoImage: { width: 180, height: 60, resizeMode: 'contain', marginBottom: 16 },
-  desktopTagline: { color: '#63B3ED', fontSize: 20, fontWeight: '600', marginBottom: 12 },
+  desktopTagline: { color: '#fdfeff', fontSize: 20, fontWeight: '600', marginBottom: 12 },
   desktopDescription: { color: '#A0AEC0', fontSize: 15, lineHeight: 24 },
-  desktopFooterText: { color: '#4A5568', fontSize: 12 },
 
-  // Desktop Right Form Area
   formColumn: { flex: 1, justifyContent: 'center' },
-  desktopRightPanel: { backgroundColor: '#F8F9FA', alignItems: 'center', padding: 24 },
-  formCard: { flex: 1, width: '100%', maxWidth: 480 },
-  desktopFormCardStyle: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, overflow: 'hidden', maxHeight: 800 },
+  desktopRightPanel: { backgroundColor: '#F8F9FA', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  
+  formCard: { flex: 1, width: '100%', maxWidth: 480, maxHeight: 700 }, 
+  desktopFormCardStyle: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, overflow: 'hidden' },
 
-  // Your Original Mobile Layout Styles
   navBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', height: 50, paddingHorizontal: 16, backgroundColor: '#FFFFFF' },
   backButton: { width: 40, height: 40, justifyContent: 'center' },
   backArrow: { fontSize: 24, color: '#000000', fontWeight: '600' },
@@ -289,28 +277,38 @@ const styles = StyleSheet.create({
   placeholderSide: { width: 40 },
   progressTrackBar: { height: 3, width: '100%', backgroundColor: '#EDF2F7' },
   progressActiveFill: { height: '100%', backgroundColor: '#38A169' }, 
-  scrollContainer: { flexGrow: 1, justifyContent: 'space-between', paddingHorizontal: 24, paddingBottom: 24, backgroundColor: '#FFFFFF' },
-  formContent: { flex: 1, marginTop: 30 },
-  mainTitle: { fontSize: 24, fontWeight: '700', color: '#000000', marginBottom: 6 },
-  mainTitleCenter: { fontSize: 20, fontWeight: '700', color: '#000000', textAlign: 'center', marginBottom: 24, paddingHorizontal: 10 },
-  subLabelText: { fontSize: 14, color: '#718096', marginBottom: 24, lineHeight: 20 },
-  formInputBox: { borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 16, fontSize: 16, color: '#000000', backgroundColor: '#F8F9FA', marginBottom: 16 },
+  
+  scrollContainer: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 24, backgroundColor: '#FFFFFF' },
+  formContent: { marginTop: 20 }, 
+  
+  mainTitle: { fontSize: 22, fontWeight: '700', color: '#000000', marginBottom: 6 },
+  
+  mainTitleCenter: { fontSize: 18, fontWeight: '700', color: '#000000', textAlign: 'center', marginBottom: 16, paddingHorizontal: 10 },
+  illustrationPlaceholder: { fontSize: 50, marginVertical: 10 }, 
+  
+  subLabelText: { fontSize: 14, color: '#718096', marginBottom: 20, lineHeight: 20 },
+  
+  formInputBox: { borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, padding: 12, fontSize: 16, color: '#000000', backgroundColor: '#F8F9FA', marginBottom: 12 },
+  
   otpGridWrapper: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 10 },
   otpDisplayCell: { width: 45, height: 55, borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 8, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' },
   otpDisplayCellActive: { borderColor: '#0052CC', borderWidth: 2 },
   otpCellText: { fontSize: 22, fontWeight: '600', color: '#000000' },
   hiddenInputOverlay: { position: 'absolute', width: '100%', height: 70, opacity: 0 },
   alignItemsCenter: { alignItems: 'center' },
-  illustrationPlaceholder: { fontSize: 80, marginVertical: 20 },
-  kycOptionsWrapper: { width: '100%', gap: 12 }, 
-  documentItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderWidth: 1, borderColor: '#E2E8F0', padding: 18, borderRadius: 12, backgroundColor: '#FAFAFA', marginBottom: 12 },
+  
+  kycOptionsWrapper: { width: '100%', gap: 10 }, 
+  
+  documentItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderWidth: 1, borderColor: '#E2E8F0', padding: 12, borderRadius: 10, backgroundColor: '#FAFAFA', marginBottom: 10 },
   documentItemRowActive: { borderColor: '#0047AB', backgroundColor: '#F0F4F8' }, 
-  docItemText: { fontSize: 16, fontWeight: '600', color: '#1A202C' },
+  docItemText: { fontSize: 15, fontWeight: '600', color: '#1A202C' },
   docStatusDot: { fontSize: 14 },
-  uploadBoxPlaceholder: { borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E0', borderRadius: 10, height: 140, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA', marginTop: 10 },
+  
+  uploadBoxPlaceholder: { borderStyle: 'dashed', borderWidth: 1, borderColor: '#CBD5E0', borderRadius: 10, height: 120, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA', marginTop: 10 },
   uploadBoxIcon: { fontSize: 32, marginBottom: 8 },
   uploadBoxText: { fontSize: 14, color: '#718096', fontWeight: '500' },
-  footerContainer: { marginTop: 30 },
-  primaryActionButton: { backgroundColor: '#0047AB', paddingVertical: 16, borderRadius: 8, alignItems: 'center' },
+  
+  footerContainer: { marginTop: 20, marginBottom: 10 },
+  primaryActionButton: { backgroundColor: '#0047AB', paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
   primaryActionButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' }
 });

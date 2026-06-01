@@ -7,18 +7,16 @@ export default function WelcomeScreen({ navigation }) {
       
       {/* Top Half: Logo and Text */}
       <View style={styles.contentWrapper}>
-        
-        {/* 3D Coin Logo */}
         <View style={styles.logoContainer}>
           <Image 
-            source={require('../assets/coin-logo.png')} 
+            source={require('../assets/logo.png')} 
             style={styles.logoImage}
             resizeMode="contain"
           />
         </View>
-
-        {/* Updated Text Copy */}
         <View style={styles.textContainer}>
+          <Text style={styles.headline}>InstaRemit</Text>
+          <Text style={styles.headline}>   </Text>
           <Text style={styles.headline}>Effortless Transfers,</Text>
           <Text style={styles.headline}>Boundless Connections.</Text>
           <Text style={styles.subheading}>
@@ -29,8 +27,6 @@ export default function WelcomeScreen({ navigation }) {
 
       {/* Bottom Half: Buttons and Footer */}
       <View style={styles.bottomInterface}>
-        
-        {/* Primary Login Button */}
         <TouchableOpacity 
           style={styles.primaryButton} 
           activeOpacity={0.85}
@@ -39,7 +35,6 @@ export default function WelcomeScreen({ navigation }) {
           <Text style={styles.primaryButtonText}>Login</Text>
         </TouchableOpacity>
 
-        {/* Secondary Sign-up Button */}
         <TouchableOpacity 
           style={styles.secondaryButton} 
           activeOpacity={0.85}
@@ -48,7 +43,6 @@ export default function WelcomeScreen({ navigation }) {
           <Text style={styles.secondaryButtonText}>Sign-up</Text>
         </TouchableOpacity>
 
-        {/* Footer with Underlined Links */}
         <Text style={styles.footerText}>
           By continuing you accept our{'\n'}
           <Text style={styles.linkText}>Terms of service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
@@ -59,11 +53,10 @@ export default function WelcomeScreen({ navigation }) {
   );
 }
 
-// Styling to exactly match your uploaded image
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#001E62', 
     justifyContent: 'space-between', 
     paddingHorizontal: 24 
   },
@@ -71,7 +64,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
-    marginTop: 40 // Pushes the content down slightly to match your mockup
+    marginTop: 40 
   },
   logoContainer: { 
     marginBottom: 40, 
@@ -87,7 +80,7 @@ const styles = StyleSheet.create({
   headline: { 
     fontSize: 26, 
     fontWeight: '700', 
-    color: '#000000', 
+    color: '#fcf8f8', 
     textAlign: 'center', 
     lineHeight: 34 
   },
@@ -101,11 +94,13 @@ const styles = StyleSheet.create({
   },
   bottomInterface: { 
     width: '100%', 
+    maxWidth: 320, // <--- THIS FIXES THE WIDE BUTTONS
+    alignSelf: 'center', // <--- KEEPS THEM CENTERED ON DESKTOP
     marginBottom: 40, 
-    gap: 16 // Adds perfect spacing between the two buttons
+    gap: 16 
   },
   primaryButton: { 
-    backgroundColor: '#0047AB', // Deep solid blue from your image
+    backgroundColor: '#0047AB', 
     paddingVertical: 16, 
     borderRadius: 8, 
     alignItems: 'center' 
@@ -121,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 8, 
     alignItems: 'center', 
     borderWidth: 1, 
-    borderColor: '#0047AB' // Blue outline matching the button
+    borderColor: '#0047AB' 
   },
   secondaryButtonText: { 
     color: '#0047AB', 

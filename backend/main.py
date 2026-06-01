@@ -13,9 +13,9 @@ from pydantic import BaseModel
 # 1. DATABASE SETUP
 # ==========================================
 # Swapped to cloud-native PostgreSQL and adjusted the protocol dialect for SQLAlchemy compatibility
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./instaremit_ledger.db")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -79,7 +79,7 @@ def fetch_live_rate_inr() -> float:
     except Exception:
         return 83.50
 
-# Optimized Ingestion Pipeline
+# Optimized Ingestion Pipeline (POST / Create Data)
 @app.post("/transactions/")
 def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db)):
     
@@ -113,6 +113,9 @@ def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db)):
 
     return new_record
 
-@app.get("/transactions/all")
-def get_all_transactions(db: Session = Depends(get_db)):
-    return db.query(TransactionRecord).all()
+# Dynamic Read Pipeline (GET / Read Data)
+@app.get("/transactions/")
+def read_transactions(db: Session = Depends(get_db)):
+    # Grab all transactions from Aiven, sorting by date so the newest are at the top
+    transactions = db.query(TransactionRecord).order_by(TransactionRecord.created_at.desc()).all()
+    return transactions

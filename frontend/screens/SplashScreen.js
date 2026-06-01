@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     // This matches the deep blue from your screenshot
-    backgroundColor: '#003DA5', 
+    backgroundColor: '#001E62', 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
