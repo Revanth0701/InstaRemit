@@ -1,0 +1,1 @@
+"%USERPROFILE%\AppData\Local\Programs\Python\Python312\python.exe" -m uvicorn main:app --reload

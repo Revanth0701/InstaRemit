@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, StatusBar, useWindowDimensions, Image } from 'react-native';
+// Added AsyncStorage for secure user ID retrieval
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function DashboardScreen({ navigation }) {
   const [appStep, setAppStep] = useState(1);
@@ -53,9 +55,17 @@ export default function DashboardScreen({ navigation }) {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/transactions/');
+      // 1. Grab the secure User ID
+      const senderId = await AsyncStorage.getItem('instaremit_user_id');
+      if (!senderId) return; // If they aren't logged in, stop here.
+
+      // 2. Ask FastAPI for this specific user's history
+      const response = await fetch(`http://127.0.0.1:8000/transactions/?sender_id=${senderId}`);
+      
       if (response.ok) {
         const dbTransactions = await response.json();
+        
+        // 3. Format the data to look beautiful in our UI
         const formattedTransactions = dbTransactions.map(tx => {
           const dateObj = new Date(tx.created_at);
           const dateLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -63,10 +73,12 @@ export default function DashboardScreen({ navigation }) {
             id: tx.transaction_id,
             dateLabel: dateLabel,
             route: `Sent to ${tx.recipient_name}`,
-            amount: `- ₹ ${formatNum(tx.gross_amount_inr)}`,
+            amount: `- ₹ ${formatNum(tx.gross_amount)}`,
             isPositive: false
           };
         });
+        
+        // 4. Update the screen!
         setTransactions(formattedTransactions);
       }
     } catch (error) {
@@ -86,14 +98,22 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
+  // UPDATED: Now fetches the sender ID and hits the correct FastAPI route
   const handleTransferSubmit = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/transactions/', {
+      const senderId = await AsyncStorage.getItem('instaremit_user_id');
+      
+      if (!senderId) {
+        alert("Authentication Error: Please log out and log back in.");
+        return;
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/transactions/create?sender_id=${senderId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           recipient_name: recipient || "Anonymous Receiver",
-          gross_amount_inr: rawInr
+          gross_amount: rawInr
         }),
       });
 
@@ -102,10 +122,11 @@ export default function DashboardScreen({ navigation }) {
         setAppStep(6); 
         fetchTransactions(); 
       } else {
-        alert("Pipeline Error: Could not write to the SQL database.");
+        const errorData = await response.json();
+        alert(`Pipeline Error: ${errorData.detail}`);
       }
     } catch (error) {
-      alert("Network Error: Could not connect to the cloud server.");
+      alert("Network Error: Could not connect to the backend server.");
     }
   };
 
@@ -141,7 +162,10 @@ export default function DashboardScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           </View>
-          <TouchableOpacity style={styles.logoutButton} onPress={() => navigation.replace('Login')}>
+          <TouchableOpacity style={styles.logoutButton} onPress={() => {
+              AsyncStorage.removeItem('instaremit_user_id'); // Clear ID on logout
+              navigation.replace('Login');
+          }}>
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </View>
@@ -285,7 +309,6 @@ export default function DashboardScreen({ navigation }) {
                         <TouchableOpacity onPress={() => setAppStep(4)}><Text style={styles.backArrow}>&lt;</Text></TouchableOpacity>
                         <Text style={styles.wizardTitle}>Enter Indian Bank Details</Text>
                       </View>
-                      {/* FIX: Explicitly asked for Recipient Name */}
                       <TextInput style={styles.inputBox} placeholder="Recipient Name" placeholderTextColor="#A0AEC0" value={indianAccountName} onChangeText={setIndianAccountName} />
                       <TextInput style={styles.inputBox} placeholder="Bank Name (e.g., SBI, HDFC)" placeholderTextColor="#A0AEC0" value={indianBankName} onChangeText={setIndianBankName} />
                       <TextInput style={styles.inputBox} placeholder="Account Number" placeholderTextColor="#A0AEC0" value={indianAccount} onChangeText={setIndianAccount} keyboardType="number-pad" />
@@ -493,7 +516,6 @@ export default function DashboardScreen({ navigation }) {
                     <TouchableOpacity onPress={() => setAppStep(4)}><Text style={styles.backArrow}>&lt;</Text></TouchableOpacity>
                     <Text style={styles.wizardTitle}>Enter Indian Bank Details</Text>
                   </View>
-                  {/* FIX: Explicitly asked for Recipient Name */}
                   <TextInput style={styles.inputBox} placeholder="Recipient Name" placeholderTextColor="#A0AEC0" value={indianAccountName} onChangeText={setIndianAccountName} />
                   <TextInput style={styles.inputBox} placeholder="Bank Name (e.g., SBI, HDFC)" placeholderTextColor="#A0AEC0" value={indianBankName} onChangeText={setIndianBankName} />
                   <TextInput style={styles.inputBox} placeholder="Account Number" placeholderTextColor="#A0AEC0" value={indianAccount} onChangeText={setIndianAccount} keyboardType="number-pad" />
@@ -550,7 +572,6 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  // THE SCROLL FIX: Removed the buggy 'overflow: hidden' and '100vh' limits that were breaking the web view
   container: { flex: 1, backgroundColor: '#FAFAFA' },
   scrollWrapper: { flexGrow: 1, paddingBottom: 150 }, 
   fullHeight: { flex: 1 },

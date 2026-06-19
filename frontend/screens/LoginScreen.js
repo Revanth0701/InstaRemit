@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, Image, Alert } from 'react-native';
+// Added AsyncStorage for secure user ID retrieval
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -7,9 +9,39 @@ export default function LoginScreen({ navigation }) {
   const { width: screenWidth } = useWindowDimensions();
   const isDesktop = screenWidth >= 768;
 
-  const handleLogin = () => {
-    // Authenticate and route straight to your responsive dashboard
-    navigation.replace('Dashboard');
+  // The NEW backend logic injected into your OLD component
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 1. Save the user_id securely in the phone's memory
+        await AsyncStorage.setItem('instaremit_user_id', data.user_id);
+        
+        // 2. Show a quick welcome message
+        Alert.alert("Success!", `Welcome back, ${data.full_name}!`);
+        
+        // 3. Teleport the user to the Dashboard
+        navigation.replace('Dashboard');
+
+      } else {
+        Alert.alert("Login Failed", data.detail);
+      }
+    } catch (error) {
+      Alert.alert("Network Error", "Could not connect to the backend server.");
+      console.error(error);
+    }
   };
 
   return (
@@ -24,7 +56,7 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.desktopLeftPanel}>
                 <View style={styles.brandContainer}>
                   <Image source={require('../assets/logo.png')} style={{ width: 180, height: 60, resizeMode: 'contain', marginBottom: 16 }} />
-                  <Text style={styles.desktopTagline}>       InstaRemit</Text>
+                  <Text style={styles.desktopTagline}>      InstaRemit</Text>
                   <Text style={styles.desktopDescription}>
                   Inflow streaming ledger designed for lightning-fast cross-border clearings and real-time exchange rate matrices.
                   </Text>
